@@ -42,25 +42,50 @@ def main() -> None:
     zip_path = data_dir / "MachineLearningCSV.zip"
     md5_path = data_dir / "MachineLearningCSV.md5"
 
-    if not zip_path.exists():
-        download_with_progress(zip_url, zip_path)
-    else:
-        print(f"Zip file already exists at {zip_path}")
-
+    # Download MD5 checksum file
     print(f"Downloading {md5_url}...")
     urlretrieve(md5_url, md5_path)
-
-    print("Verifying file integrity...")
-    zip_hash = calculate_md5(zip_path)
 
     with open(md5_path, "r") as f:
         expected_hash = f.read().split()[0]
 
-    if zip_hash.lower() != expected_hash.lower():
-        print("ERROR: The zip file is corrupt. Redownload the file.")
-        sys.exit(1)
+    # Retry logic for downloading and verifying
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        # Check if file exists and is valid
+        if zip_path.exists():
+            print(f"Zip file already exists at {zip_path}")
+            print("Verifying file integrity...")
+            zip_hash = calculate_md5(zip_path)
 
-    print("File integrity verified successfully!")
+            if zip_hash.lower() == expected_hash.lower():
+                print("File integrity verified successfully!")
+                break
+            else:
+                print(f"ERROR: The zip file is corrupt (attempt {attempt}/{max_retries})")
+                print("Deleting corrupted file and redownloading...")
+                zip_path.unlink()
+        else:
+            print(f"Download attempt {attempt}/{max_retries}")
+
+        # Download the file
+        download_with_progress(zip_url, zip_path)
+
+        # Verify the downloaded file
+        print("Verifying file integrity...")
+        zip_hash = calculate_md5(zip_path)
+
+        if zip_hash.lower() == expected_hash.lower():
+            print("File integrity verified successfully!")
+            break
+        else:
+            if attempt < max_retries:
+                print(f"ERROR: Downloaded file is corrupt (attempt {attempt}/{max_retries})")
+                print("Deleting corrupted file and retrying...")
+                zip_path.unlink()
+            else:
+                print(f"ERROR: Failed to download valid file after {max_retries} attempts")
+                sys.exit(1)
 
     print(f"Extracting archive to {data_dir}...")
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
