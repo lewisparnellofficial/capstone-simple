@@ -25,7 +25,6 @@ data/processed/*.csv
 data/MachineLearningCVE/
 
 # Model artifacts (large binary files)
-models/*.json
 models/*.pkl
 models/*.joblib
 
