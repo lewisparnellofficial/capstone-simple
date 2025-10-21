@@ -37,17 +37,22 @@ def preprocess_dataset(input_file="data/raw/dataset.csv", output_file=None):
     if output_file is None:
         output_file = input_file
 
-    df = pd.read_csv(input_file)
+    df = pd.read_csv(input_file, low_memory=False)
     print(f"Original dataset: {len(df):,} rows")
 
     df.columns = df.columns.str.strip()
+
+    label_col = df["Label"]
+    for col in df.columns:
+        if col != "Label":
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df = df.replace([np.inf, -np.inf], np.nan)
 
     rows_before = len(df)
     df = df.dropna()
     rows_after = len(df)
-    print(f"Dropped {rows_before - rows_after:,} rows with NaN values")
+    print(f"Dropped {rows_before - rows_after:,} rows with NaN or malformed values")
 
     df.to_csv(output_file, index=False)
     print(f"Preprocessed dataset saved to {output_file} ({rows_after:,} rows)")

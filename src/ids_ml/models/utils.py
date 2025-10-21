@@ -32,7 +32,7 @@ def load_and_prepare_data(
         Tuple of (X_train, y_train, X_val, y_val, X_test, y_test, num_classes, label_encoder, scaler, selector)
         where scaler and selector are the preprocessing objects (or None if not used)
     """
-    df = pd.read_csv(dataset_path)
+    df = pd.read_csv(dataset_path, low_memory=False)
     num_classes = len(df["Label"].unique())
 
     le = LabelEncoder()

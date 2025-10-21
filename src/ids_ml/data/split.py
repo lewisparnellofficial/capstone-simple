@@ -37,7 +37,7 @@ def split_dataset(
     Returns:
         Tuple of (train_df, test_df, val_df)
     """
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, low_memory=False)
 
     split1, split2 = proportional_split(*proportions)
 
