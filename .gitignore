@@ -18,8 +18,8 @@ wheels/
 # Data files (large datasets)
 data/*.md5
 data/*.zip
-# data/raw/*.csv
-# data/samples/*.csv
+data/raw/*.csv
+data/samples/*.csv
 data/processed/*.csv
 data/MachineLearningCVE/
 
