@@ -1,0 +1,6 @@
+{
+  "use_smote": false,
+  "smote_k_neighbors": 5,
+  "use_chi2": true,
+  "chi2_k_features": 20
+}

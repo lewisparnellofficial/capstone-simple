@@ -9,5 +9,42 @@ wheels/
 # Virtual environments
 .venv
 
-# Prevent the data files from getting added
-data/*
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (large datasets)
+data/*.md5
+data/*.zip
+# data/raw/*.csv
+# data/samples/*.csv
+data/processed/*.csv
+data/MachineLearningCVE/
+
+# Model artifacts (large binary files)
+models/*.json
+models/*.pkl
+models/*.joblib
+
+# Outputs
+outputs/plots/*.png
+outputs/plots/*.jpg
+outputs/plots/*.pdf
+outputs/results/*.csv
+outputs/results/*.json
+
+# Keep directory structure but ignore contents
+!data/raw/.gitkeep
+!data/samples/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!outputs/plots/.gitkeep
+!outputs/results/.gitkeep
+
+# Temporary files
+*.tmp
+*.log
+nul
+~$*.docx
