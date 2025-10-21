@@ -16,6 +16,7 @@ wheels/
 *.swo
 
 # Data files (large datasets)
+/*.csv
 data/*.md5
 data/*.zip
 data/raw/*.csv
