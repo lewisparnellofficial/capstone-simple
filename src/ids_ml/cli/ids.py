@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Intrusion Detection System (IDS) - Command Line Interface
 
@@ -19,7 +18,9 @@ def is_harmful(label):
     return label.upper() != "BENIGN"
 
 
-def analyze_traffic_file(file_path, model, label_mapping, verbose=False, output_file=None):
+def analyze_traffic_file(
+    file_path, model, label_mapping, verbose=False, output_file=None
+):
     """
     Analyze a CSV file containing network traffic flows.
 
@@ -30,9 +31,9 @@ def analyze_traffic_file(file_path, model, label_mapping, verbose=False, output_
         verbose: If True, print detailed information for each flow
         output_file: Optional path to save detailed results as CSV
     """
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Analyzing traffic from: {file_path}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     try:
         df = pd.read_csv(file_path)
@@ -46,65 +47,63 @@ def analyze_traffic_file(file_path, model, label_mapping, verbose=False, output_
         print(f"Error reading file: {e}")
         sys.exit(1)
 
-    # Remove Label column if it exists (for testing purposes)
     if "Label" in df.columns:
         print("Note: Removing existing 'Label' column from input data\n")
         df = df.drop("Label", axis=1)
 
     print(f"Total flows to analyze: {len(df)}")
 
-    # Make predictions
     predictions, probabilities = predict(model, label_mapping, df)
 
-    # Count harmful vs benign
     harmful_count = sum(1 for pred in predictions if is_harmful(pred))
     benign_count = len(predictions) - harmful_count
 
-    # Detailed statistics by attack type
     attack_types = {}
     for pred in predictions:
         if pred not in attack_types:
             attack_types[pred] = 0
         attack_types[pred] += 1
 
-    # Print summary
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("ANALYSIS SUMMARY")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print(f"Total flows analyzed:    {len(predictions)}")
-    print(f"Benign flows:            {benign_count} ({benign_count/len(predictions)*100:.2f}%)")
-    print(f"Harmful flows:           {harmful_count} ({harmful_count/len(predictions)*100:.2f}%)")
+    print(
+        f"Benign flows:            {benign_count} ({benign_count / len(predictions) * 100:.2f}%)"
+    )
+    print(
+        f"Harmful flows:           {harmful_count} ({harmful_count / len(predictions) * 100:.2f}%)"
+    )
 
     if harmful_count > 0:
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("DETECTED THREATS")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         for attack_type, count in sorted(attack_types.items()):
             if is_harmful(attack_type):
                 percentage = count / len(predictions) * 100
                 print(f"  {attack_type:30s} {count:6d} flows ({percentage:5.2f}%)")
 
-    # Verbose output
     if verbose:
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("DETAILED FLOW ANALYSIS")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         for i, (pred, proba) in enumerate(zip(predictions, probabilities)):
             confidence = max(proba) * 100
             status = "HARMFUL" if is_harmful(pred) else "BENIGN"
-            print(f"Flow {i+1:5d}: {status:12s} | Type: {pred:30s} | Confidence: {confidence:5.2f}%")
+            print(
+                f"Flow {i + 1:5d}: {status:12s} | Type: {pred:30s} | Confidence: {confidence:5.2f}%"
+            )
 
-    # Save results to file if requested
     if output_file:
         results_df = df.copy()
-        results_df['Predicted_Label'] = predictions
-        results_df['Confidence'] = [max(proba) for proba in probabilities]
-        results_df['Is_Harmful'] = [is_harmful(pred) for pred in predictions]
+        results_df["Predicted_Label"] = predictions
+        results_df["Confidence"] = [max(proba) for proba in probabilities]
+        results_df["Is_Harmful"] = [is_harmful(pred) for pred in predictions]
 
         results_df.to_csv(output_file, index=False)
         print(f"\nDetailed results saved to: {output_file}")
 
-    # Return status code based on findings
     return harmful_count > 0
 
 
@@ -117,9 +116,9 @@ def analyze_single_flow(features_dict, model, label_mapping):
         model: Loaded XGBoost model
         label_mapping: Dictionary mapping class indices to labels
     """
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("Analyzing single network flow")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     try:
         df = pd.DataFrame([features_dict])
@@ -134,11 +133,13 @@ def analyze_single_flow(features_dict, model, label_mapping):
 
     print(f"Prediction:  {pred}")
     print(f"Confidence:  {confidence:.2f}%")
-    print(f"Status:      {'HARMFUL TRAFFIC DETECTED' if is_harmful(pred) else 'Benign traffic'}")
+    print(
+        f"Status:      {'HARMFUL TRAFFIC DETECTED' if is_harmful(pred) else 'Benign traffic'}"
+    )
 
     print("\nConfidence scores for all classes:")
     for class_name, prob in zip(label_mapping.values(), probabilities[0]):
-        print(f"  {class_name:30s} {prob*100:6.2f}%")
+        print(f"  {class_name:30s} {prob * 100:6.2f}%")
 
     return is_harmful(pred)
 
@@ -149,56 +150,49 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Analyze a CSV file with traffic flows
+
   ids --file traffic_data.csv
 
-  # Analyze with detailed output for each flow
   ids --file traffic_data.csv --verbose
 
-  # Analyze and save results to a file
   ids --file traffic_data.csv --output results.csv
 
-  # Analyze a single flow from JSON file
   ids --json flow_features.json
 
-  # Show available attack types
   ids --list-classes
-        """
+        """,
     )
 
     parser.add_argument(
         "--file",
         "-f",
         type=str,
-        help="Path to CSV file containing traffic flows to analyze"
+        help="Path to CSV file containing traffic flows to analyze",
     )
 
     parser.add_argument(
         "--json",
         "-j",
         type=str,
-        help="Path to JSON file containing a single flow's features"
+        help="Path to JSON file containing a single flow's features",
     )
 
     parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
-        help="Print detailed information for each flow"
+        help="Print detailed information for each flow",
     )
 
     parser.add_argument(
-        "--output",
-        "-o",
-        type=str,
-        help="Save detailed results to CSV file"
+        "--output", "-o", type=str, help="Save detailed results to CSV file"
     )
 
     parser.add_argument(
         "--list-classes",
         "-l",
         action="store_true",
-        help="List all detectable attack types and exit"
+        help="List all detectable attack types and exit",
     )
 
     parser.add_argument(
@@ -206,12 +200,11 @@ Examples:
         "-m",
         type=str,
         default="models",
-        help="Directory containing model artifacts (default: models)"
+        help="Directory containing model artifacts (default: models)",
     )
 
     args = parser.parse_args()
 
-    # Load model and label mapping
     try:
         model, label_mapping = load_model(args.model_dir)
     except FileNotFoundError as e:
@@ -219,34 +212,31 @@ Examples:
         print(f"Please ensure model artifacts exist in {args.model_dir}/")
         sys.exit(1)
 
-    # List classes mode
     if args.list_classes:
         print("\nDetectable traffic classes:")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         for idx, class_name in sorted(label_mapping.items(), key=lambda x: int(x[0])):
             status = "Benign" if class_name == "BENIGN" else "Harmful"
-            # Handle potential encoding issues
-            safe_name = str(class_name).encode('ascii', 'replace').decode('ascii')
+
+            safe_name = str(class_name).encode("ascii", "replace").decode("ascii")
             print(f"  [{idx:2s}] {safe_name:30s} ({status})")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         print(f"\nTotal classes: {len(label_mapping)}")
         return 0
 
-    # File analysis mode
     if args.file:
         harmful_detected = analyze_traffic_file(
             args.file,
             model,
             label_mapping,
             verbose=args.verbose,
-            output_file=args.output
+            output_file=args.output,
         )
         return 1 if harmful_detected else 0
 
-    # JSON single flow mode
     if args.json:
         try:
-            with open(args.json, 'r') as f:
+            with open(args.json, "r") as f:
                 features_dict = json.load(f)
             harmful_detected = analyze_single_flow(features_dict, model, label_mapping)
             return 1 if harmful_detected else 0
@@ -257,7 +247,6 @@ Examples:
             print(f"Error: Invalid JSON format - {e}")
             sys.exit(1)
 
-    # No arguments provided
     parser.print_help()
     return 0
 

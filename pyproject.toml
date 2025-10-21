@@ -24,6 +24,7 @@ ids-sample-gen = "ids_ml.cli.sample_generator:main"
 ids-train = "ids_ml.models.train:main"
 ids-evaluate = "ids_ml.models.evaluate:main"
 ids-download = "ids_ml.cli.download:main"
+ids-preprocess = "ids_ml.cli.preprocess:main"
 
 [build-system]
 requires = ["hatchling"]

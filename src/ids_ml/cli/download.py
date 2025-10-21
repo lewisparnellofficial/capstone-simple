@@ -32,28 +32,24 @@ def calculate_md5(file_path: Path) -> str:
 
 def main() -> None:
     """Download and verify the CIC-IDS-2017 dataset."""
-    # URLs
+
     zip_url = "http://205.174.165.80/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/MachineLearningCSV.zip"
     md5_url = "http://205.174.165.80/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/MachineLearningCSV.md5"
 
-    # Paths
     data_dir = Path(__file__).parent.parent.parent.parent / "data"
     data_dir.mkdir(exist_ok=True)
 
     zip_path = data_dir / "MachineLearningCSV.zip"
     md5_path = data_dir / "MachineLearningCSV.md5"
 
-    # Download zip file if it doesn't exist
     if not zip_path.exists():
         download_with_progress(zip_url, zip_path)
     else:
         print(f"Zip file already exists at {zip_path}")
 
-    # Always download the MD5 file to verify
     print(f"Downloading {md5_url}...")
     urlretrieve(md5_url, md5_path)
 
-    # Verify MD5 hash
     print("Verifying file integrity...")
     zip_hash = calculate_md5(zip_path)
 
@@ -66,12 +62,16 @@ def main() -> None:
 
     print("File integrity verified successfully!")
 
-    # Extract the archive
     print(f"Extracting archive to {data_dir}...")
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(data_dir)
 
+    print()
+    print("=" * 60)
     print("Download and extraction complete!")
+    print()
+    print("Next step: Run 'uv run ids-preprocess' to prepare the dataset")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

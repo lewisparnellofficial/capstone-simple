@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 
 
-def merge_csv_files(input_dir="data/raw/MachineLearningCVE", output_file="data/raw/dataset.csv"):
+def merge_csv_files(
+    input_dir="data/raw/MachineLearningCVE", output_file="data/raw/dataset.csv"
+):
     """Merge multiple CSV files into a single dataset.
 
     Args:
@@ -38,13 +40,10 @@ def preprocess_dataset(input_file="data/raw/dataset.csv", output_file=None):
     df = pd.read_csv(input_file)
     print(f"Original dataset: {len(df):,} rows")
 
-    # Clean column names
     df.columns = df.columns.str.strip()
 
-    # Replace infinities with NaN
     df = df.replace([np.inf, -np.inf], np.nan)
 
-    # Drop rows with NaN values
     rows_before = len(df)
     df = df.dropna()
     rows_after = len(df)
