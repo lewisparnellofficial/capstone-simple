@@ -43,38 +43,26 @@ def evaluate_model(
     print("Loading model and data...")
 
     try:
-        model, label_mapping = load_model(model_dir)
+        model, label_mapping, scaler, selector, preprocessing_config = load_model(
+            model_dir
+        )
     except FileNotFoundError as e:
         print(f"Error: Model files not found in {model_dir}/")
         print(f"Please ensure the model has been trained first.")
         sys.exit(1)
 
-    # Load preprocessing configuration and artifacts
-    model_path = Path(model_dir)
-    scaler = None
-    selector = None
-    preprocessing_config = None
-
-    config_path = model_path / "preprocessing_config.json"
-    if config_path.exists():
-        with open(config_path, "r") as f:
-            preprocessing_config = json.load(f)
+    if preprocessing_config:
         print(f"Loaded preprocessing configuration:")
-        print(f"  SMOTE: {'Enabled' if preprocessing_config.get('use_smote', False) else 'Disabled'}")
-        print(f"  Chi-Squared feature selection: {'Enabled' if preprocessing_config.get('use_chi2', False) else 'Disabled'}")
-        if preprocessing_config.get('use_chi2', False):
-            print(f"  Chi-Squared k features: {preprocessing_config.get('chi2_k_features', 'N/A')}")
-
-    scaler_path = model_path / "scaler.pkl"
-    selector_path = model_path / "selector.pkl"
-
-    if scaler_path.exists():
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-
-    if selector_path.exists():
-        with open(selector_path, "rb") as f:
-            selector = pickle.load(f)
+        print(
+            f"  SMOTE: {'Enabled' if preprocessing_config.get('use_smote', False) else 'Disabled'}"
+        )
+        print(
+            f"  Chi-Squared feature selection: {'Enabled' if preprocessing_config.get('use_chi2', False) else 'Disabled'}"
+        )
+        if preprocessing_config.get("use_chi2", False):
+            print(
+                f"  Chi-Squared k features: {preprocessing_config.get('chi2_k_features', 'N/A')}"
+            )
 
     df = pd.read_csv(dataset_path)
     train_df, test_df, val_df = split_dataset(csv_path=dataset_path)
