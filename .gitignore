@@ -30,8 +30,7 @@ models/*.joblib
 
 # Outputs
 outputs/plots/*.png
-outputs/plots/*.jpg
-outputs/plots/*.pdf
+outputs/plots/*.csv
 outputs/results/*.csv
 outputs/results/*.json
 
