@@ -1,8 +1,8 @@
 $zip_url = "http://205.174.165.80/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/MachineLearningCSV.zip"
 $md5_url = "http://205.174.165.80/CICDataset/CIC-IDS-2017/Dataset/CIC-IDS-2017/CSVs/MachineLearningCSV.md5"
 
-$zip_path = ".\data\MachineLearningCSV.zip"
-$md5_path = ".\data\MachineLearningCSV.md5"
+$zip_path = "..\data\MachineLearningCSV.zip"
+$md5_path = "..\data\MachineLearningCSV.md5"
 
 if (-not (Test-Path $zip_path)) {
 	Invoke-WebRequest -Uri $zip_url -OutFile $zip_path
