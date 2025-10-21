@@ -48,3 +48,5 @@ outputs/results/*.json
 *.log
 nul
 ~$*.docx
+samples/mixed_attacks.csv
+samples/mostly_benign.csv

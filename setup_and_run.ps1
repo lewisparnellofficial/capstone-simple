@@ -47,7 +47,7 @@ else {
 
 	try {
 		Write-Status "Running uv installer..."
-		irm https://astral.sh/uv/install.ps1 | iex
+		Invoke-RestMethod https://astral.sh/uv/install.ps1 | iex
 
 		$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 

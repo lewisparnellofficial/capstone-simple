@@ -19,7 +19,7 @@ def is_harmful(label):
 
 
 def analyze_traffic_file(
-    file_path, model, label_mapping, verbose=False, output_file=None
+    file_path, model, label_mapping, scaler=None, selector=None, verbose=False, output_file=None
 ):
     """
     Analyze a CSV file containing network traffic flows.
@@ -28,6 +28,8 @@ def analyze_traffic_file(
         file_path: Path to CSV file with traffic data
         model: Loaded XGBoost model
         label_mapping: Dictionary mapping class indices to labels
+        scaler: Optional MinMaxScaler for preprocessing
+        selector: Optional SelectKBest selector for feature selection
         verbose: If True, print detailed information for each flow
         output_file: Optional path to save detailed results as CSV
     """
@@ -53,7 +55,7 @@ def analyze_traffic_file(
 
     print(f"Total flows to analyze: {len(df)}")
 
-    predictions, probabilities = predict(model, label_mapping, df)
+    predictions, probabilities = predict(model, label_mapping, df, scaler, selector)
 
     harmful_count = sum(1 for pred in predictions if is_harmful(pred))
     benign_count = len(predictions) - harmful_count
@@ -82,7 +84,8 @@ def analyze_traffic_file(
         for attack_type, count in sorted(attack_types.items()):
             if is_harmful(attack_type):
                 percentage = count / len(predictions) * 100
-                print(f"  {attack_type:30s} {count:6d} flows ({percentage:5.2f}%)")
+                safe_attack_type = str(attack_type).encode("ascii", "replace").decode("ascii")
+                print(f"  {safe_attack_type:30s} {count:6d} flows ({percentage:5.2f}%)")
 
     if verbose:
         print(f"\n{'=' * 70}")
@@ -91,8 +94,9 @@ def analyze_traffic_file(
         for i, (pred, proba) in enumerate(zip(predictions, probabilities)):
             confidence = max(proba) * 100
             status = "HARMFUL" if is_harmful(pred) else "BENIGN"
+            safe_pred = str(pred).encode("ascii", "replace").decode("ascii")
             print(
-                f"Flow {i + 1:5d}: {status:12s} | Type: {pred:30s} | Confidence: {confidence:5.2f}%"
+                f"Flow {i + 1:5d}: {status:12s} | Type: {safe_pred:30s} | Confidence: {confidence:5.2f}%"
             )
 
     if output_file:
@@ -107,7 +111,7 @@ def analyze_traffic_file(
     return harmful_count > 0
 
 
-def analyze_single_flow(features_dict, model, label_mapping):
+def analyze_single_flow(features_dict, model, label_mapping, scaler=None, selector=None):
     """
     Analyze a single network flow from command-line arguments.
 
@@ -115,6 +119,8 @@ def analyze_single_flow(features_dict, model, label_mapping):
         features_dict: Dictionary of feature names and values
         model: Loaded XGBoost model
         label_mapping: Dictionary mapping class indices to labels
+        scaler: Optional MinMaxScaler for preprocessing
+        selector: Optional SelectKBest selector for feature selection
     """
     print(f"\n{'=' * 70}")
     print("Analyzing single network flow")
@@ -126,12 +132,13 @@ def analyze_single_flow(features_dict, model, label_mapping):
         print(f"Error creating flow data: {e}")
         sys.exit(1)
 
-    predictions, probabilities = predict(model, label_mapping, df)
+    predictions, probabilities = predict(model, label_mapping, df, scaler, selector)
 
     pred = predictions[0]
     confidence = max(probabilities[0]) * 100
 
-    print(f"Prediction:  {pred}")
+    safe_pred = str(pred).encode("ascii", "replace").decode("ascii")
+    print(f"Prediction:  {safe_pred}")
     print(f"Confidence:  {confidence:.2f}%")
     print(
         f"Status:      {'HARMFUL TRAFFIC DETECTED' if is_harmful(pred) else 'Benign traffic'}"
@@ -139,7 +146,8 @@ def analyze_single_flow(features_dict, model, label_mapping):
 
     print("\nConfidence scores for all classes:")
     for class_name, prob in zip(label_mapping.values(), probabilities[0]):
-        print(f"  {class_name:30s} {prob * 100:6.2f}%")
+        safe_class_name = str(class_name).encode("ascii", "replace").decode("ascii")
+        print(f"  {safe_class_name:30s} {prob * 100:6.2f}%")
 
     return is_harmful(pred)
 
@@ -206,7 +214,7 @@ Examples:
     args = parser.parse_args()
 
     try:
-        model, label_mapping = load_model(args.model_dir)
+        model, label_mapping, scaler, selector, preprocessing_config = load_model(args.model_dir)
     except FileNotFoundError as e:
         print(f"Error: Required model file not found - {e.filename}")
         print(f"Please ensure model artifacts exist in {args.model_dir}/")
@@ -229,6 +237,8 @@ Examples:
             args.file,
             model,
             label_mapping,
+            scaler,
+            selector,
             verbose=args.verbose,
             output_file=args.output,
         )
@@ -238,7 +248,7 @@ Examples:
         try:
             with open(args.json, "r") as f:
                 features_dict = json.load(f)
-            harmful_detected = analyze_single_flow(features_dict, model, label_mapping)
+            harmful_detected = analyze_single_flow(features_dict, model, label_mapping, scaler, selector)
             return 1 if harmful_detected else 0
         except FileNotFoundError:
             print(f"Error: JSON file not found - {args.json}")
